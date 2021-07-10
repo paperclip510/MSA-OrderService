@@ -7,7 +7,7 @@ public interface OrderService {
 	
 	OrderDto createOrder(OrderDto orderDto);
 
-	OrderDto getOrderByOrderid(String orderId);
+	OrderDto getOrderByOrderId(String orderId);
 	
-	Iterable<OrderEntity> getOrderByUserId(String userId);
+	Iterable<OrderEntity> getOrdersByUserId(String userId);
 }

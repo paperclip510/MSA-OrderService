@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.shdh.dto.OrderDto;
 import com.shdh.jpa.OrderEntity;
+import com.shdh.messagequeue.KafkaProducer;
 import com.shdh.service.OrderService;
 import com.shdh.vo.RequestOrder;
 import com.shdh.vo.ResponseOrder;
@@ -26,13 +27,15 @@ import com.shdh.vo.ResponseOrder;
 @RequestMapping(value = "/order-service/**")
 public class OrderController {
 	Environment env;
-
 	OrderService orderService;
+	KafkaProducer kafkaProducer;
+	
 	
 	@Autowired
-	public OrderController(Environment env, OrderService orderService) {
+	public OrderController(Environment env, OrderService orderService, KafkaProducer kafkaProducer) {
 		this.env = env;
 		this.orderService = orderService;
+		this.kafkaProducer = kafkaProducer;
 	}
 	
 	@GetMapping("/health_check")
@@ -47,14 +50,18 @@ public class OrderController {
 		ModelMapper mapper = new ModelMapper();
 		mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
+		
+		// jpa 주문 등록 
 		OrderDto orderDto = mapper.map(requestOrder, OrderDto.class);
 		orderDto.setUserId(userId);
-		
-		OrderDto createOrder = orderService.createOrder(orderDto);
+		OrderDto createOrder = orderService.createOrder(orderDto);		
 		
 		ResponseOrder responseUser = mapper.map(createOrder, ResponseOrder.class);
-		//responseUser를 responseEntity body에 넣어서 반환.
 		
+		// send this order to the kafka (send topic)
+		kafkaProducer.send("example-catalog-topic", orderDto);
+		
+		//responseUser를 responseEntity body에 넣어서 반환.
 		return ResponseEntity.status(HttpStatus.CREATED).body(responseUser);
 	}
 	

@@ -2,6 +2,7 @@ package com.shdh.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.shdh.dto.OrderDto;
 import com.shdh.jpa.OrderEntity;
 import com.shdh.messagequeue.KafkaProducer;
+import com.shdh.messagequeue.OrderProducer;
 import com.shdh.service.OrderService;
 import com.shdh.vo.RequestOrder;
 import com.shdh.vo.ResponseOrder;
@@ -29,13 +31,14 @@ public class OrderController {
 	Environment env;
 	OrderService orderService;
 	KafkaProducer kafkaProducer;
-	
+	OrderProducer orderProducer;
 	
 	@Autowired
-	public OrderController(Environment env, OrderService orderService, KafkaProducer kafkaProducer) {
+	public OrderController(Environment env, OrderService orderService, KafkaProducer kafkaProducer, OrderProducer orderProducer) {
 		this.env = env;
 		this.orderService = orderService;
 		this.kafkaProducer = kafkaProducer;
+		this.orderProducer = orderProducer;
 	}
 	
 	@GetMapping("/health_check")
@@ -51,16 +54,27 @@ public class OrderController {
 		mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
 		
-		// jpa 주문 등록 
 		OrderDto orderDto = mapper.map(requestOrder, OrderDto.class);
 		orderDto.setUserId(userId);
-		OrderDto createOrder = orderService.createOrder(orderDto);		
 		
-		ResponseOrder responseUser = mapper.map(createOrder, ResponseOrder.class);
+		// jpa 주문 등록 
+//		OrderDto createOrder = orderService.createOrder(orderDto);		
+//		ResponseOrder responseUser = mapper.map(createOrder, ResponseOrder.class);
+		
+		// kafka
+		orderDto.setOrderId(UUID.randomUUID().toString());
+		orderDto.setTotalPrice(requestOrder.getUnitPrice()*requestOrder.getQty());
 		
 		// send this order to the kafka (send topic)
-		kafkaProducer.send("example-catalog-topic", orderDto);
+		//kafkaProducer.send("example-catalog-topic", orderDto);
 		
+		orderProducer.send("orders", orderDto);
+		
+		// sink connect 추가 
+		// kafka connect 실행  ./bin/connect-distributed ./etc/kafka/connect-distributed.properties
+		
+		ResponseOrder responseUser = mapper.map(orderDto, ResponseOrder.class);
+
 		//responseUser를 responseEntity body에 넣어서 반환.
 		return ResponseEntity.status(HttpStatus.CREATED).body(responseUser);
 	}

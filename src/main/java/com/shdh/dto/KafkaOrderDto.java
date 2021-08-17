@@ -7,12 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class KafkaOrderDto implements Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5540395887865531617L;
-	
+public class KafkaOrderDto implements Serializable{	
 	private Schema schema;
 	private Payload payload;
 }

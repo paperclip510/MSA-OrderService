@@ -23,9 +23,9 @@ public class OrderProducer {
 	private KafkaTemplate<String, String> kafkaTemplate;
 	
 	List<Field> fields = Arrays.asList(
-			new Field("String", true, "order_id"),
-			new Field("String", true, "user_id"),
-			new Field("String", true, "product_id"),
+			new Field("string", true, "order_id"),
+			new Field("string", true, "user_id"),
+			new Field("string", true, "product_id"),
 			new Field("int32", true, "qty"),
 			new Field("int32", true, "unit_price"),
 			new Field("int32", true, "total_price")
@@ -51,6 +51,7 @@ public class OrderProducer {
 				.product_id(orderDto.getProductId())
 				.qty(orderDto.getQty())
 				.unit_price(orderDto.getUnitPrice())
+				.total_price(orderDto.getTotalPrice())
 				.build();
 		
 		KafkaOrderDto kafkaorderDto = new KafkaOrderDto(schema, payload);

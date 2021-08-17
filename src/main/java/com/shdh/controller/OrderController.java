@@ -58,25 +58,24 @@ public class OrderController {
 		orderDto.setUserId(userId);
 		
 		// jpa 주문 등록 
-//		OrderDto createOrder = orderService.createOrder(orderDto);		
-//		ResponseOrder responseUser = mapper.map(createOrder, ResponseOrder.class);
+		OrderDto createOrder = orderService.createOrder(orderDto);		
+		ResponseOrder responseOrder = mapper.map(createOrder, ResponseOrder.class);
 		
 		// kafka
 		orderDto.setOrderId(UUID.randomUUID().toString());
 		orderDto.setTotalPrice(requestOrder.getUnitPrice()*requestOrder.getQty());
 		
 		// send this order to the kafka (send topic)
-		//kafkaProducer.send("example-catalog-topic", orderDto);
-		
-		orderProducer.send("orders", orderDto);
+//		kafkaProducer.send("example-catalog-topic", orderDto);
+//		orderProducer.send("orders", orderDto);
 		
 		// sink connect 추가 
 		// kafka connect 실행  ./bin/connect-distributed ./etc/kafka/connect-distributed.properties
 		
-		ResponseOrder responseUser = mapper.map(orderDto, ResponseOrder.class);
+//		ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
 
 		//responseUser를 responseEntity body에 넣어서 반환.
-		return ResponseEntity.status(HttpStatus.CREATED).body(responseUser);
+		return ResponseEntity.status(HttpStatus.CREATED).body(responseOrder);
 	}
 	
 

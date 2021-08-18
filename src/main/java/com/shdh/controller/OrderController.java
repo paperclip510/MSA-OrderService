@@ -25,8 +25,11 @@ import com.shdh.service.OrderService;
 import com.shdh.vo.RequestOrder;
 import com.shdh.vo.ResponseOrder;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
 @RequestMapping(value = "/order-service/**")
+@Slf4j
 public class OrderController {
 	Environment env;
 	OrderService orderService;
@@ -48,7 +51,8 @@ public class OrderController {
 	
 	@PostMapping("/{userId}/orders")
 	public ResponseEntity<ResponseOrder> createOrder(@RequestBody RequestOrder requestOrder, @PathVariable("userId") String userId) {
-		
+		log.info("Before add orders data");
+
 		
 		ModelMapper mapper = new ModelMapper();
 		mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -75,18 +79,30 @@ public class OrderController {
 //		ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
 
 		//responseUser를 responseEntity body에 넣어서 반환.
+		
+		log.info("After add orders data");
 		return ResponseEntity.status(HttpStatus.CREATED).body(responseOrder);
 	}
 	
 
 	@GetMapping("/{userId}/orders")
-	public ResponseEntity<List<ResponseOrder>> getUsers(@PathVariable("userId") String userId){
+	public ResponseEntity<List<ResponseOrder>> getUsers(@PathVariable("userId") String userId) throws Exception{
+		log.info("Before retrieve orders data");
 		Iterable<OrderEntity> userList = orderService.getOrdersByUserId(userId);
 		
 		List<ResponseOrder> result = new ArrayList<>();
 		userList.forEach(item -> {
 			result.add(new ModelMapper().map(item, ResponseOrder.class));
 		});
+		
+		try {
+			Thread.sleep(1000);
+			throw new Exception("장애 발생");
+		}catch (InterruptedException e) {
+			log.warn(e.getMessage());
+		}
+		
+		log.info("After retrieve orders data");
 		
 		return ResponseEntity.status(HttpStatus.OK).body(result);
 	}
